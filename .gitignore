@@ -1,0 +1,10 @@
+.pytest_cache/
+.cache/
+__pycache__/
+.idea/
+.eggs/
+UNKNOWN.egg-info/
+temp_game/
+.*.swp
+*~
+*.pyc
