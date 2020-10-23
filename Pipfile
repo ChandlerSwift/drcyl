@@ -1,0 +1,20 @@
+[[source]]
+url = "https://pypi.python.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[dev-packages]
+pytest = "*"
+ipython = "*"
+pygame = "*"
+e1839a8 = {path = ".",editable = true}
+pytest-runner = "*"
+pytest-cov = "*"
+pylint = "*"
+
+[packages]
+cylgame = "==1.6.*"
+greenlet = {version = "*",platform_python_implementation = "=='CPython'"}
+
+[requires]
+python_version = "3.8"
