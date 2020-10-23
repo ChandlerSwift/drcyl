@@ -14,6 +14,22 @@ Available moves: `left`, `right` (translation of the pill left-to-right),
 `down`, `hard_drop` (equivalent to sending `down` until the pill gets as
 far as it can go, but in fewer moves), `rotate_cw`, and `rotate_ccw`.
 
+Moving left or right, or attempting to rotate when no rotation is possible,
+doesn't have any effect. However, you have a limited number of turns to score
+points, so try to avoid wasting them on moves that don't do anything!
+
+Like in the original game, even when the pill is zero spaces away from (that is,
+touching) a pill or virus below, it can still slide around on it. To place the
+piece, move `down` (or `hard_drop`) one additional time.
+
+To accomodate a turn-based format, the pills do not drop on their own. You have
+full control over the speed they descend; however, you want to get points as
+quickly as possible, so don't hesitate for too many turns!
+
+When you place a piece, you may destroy some pills. If you get a combo, or if
+pills need to fall, this may take a few turns to settle out, but will be worth
+additional points.
+
 ## Sensors
 
 Robot can access three types of information: variables, distance sensors, and configurable point sensors.

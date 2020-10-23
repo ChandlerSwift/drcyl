@@ -96,7 +96,7 @@ class DrCYL(GridGame):
 
         self.current_pill = self.capsule_queue.popleft()
         self.capsule_queue.append(self.current_pill)
-        self.current_position = (0,3)
+        self.current_position = [3,15]
         self.current_orientation = Orientation.HORIZONTAL
 
     def generate_grid(self, level: int):
@@ -176,10 +176,76 @@ class DrCYL(GridGame):
         self.update_vars_for_player()
 
     def do_player_move(self, key):
+        pill_fixed_in_place = False
+        if key == "s": # down
+            fix_pill_in_place = False
+            if self.current_orientation == Orientation.VERTICAL:
+                if self.current_position[1] > 1 and self.map[self.current_position[0]][self.current_position[1] - 2] == "\0": # Free space to move down
+                    self.current_position[1] -= 1
+                else:
+                    self.map[self.current_position[0]][self.current_position[1]] = self.current_pill[0]
+                    self.map[self.current_position[0]][self.current_position[1] - 1] = self.current_pill [1]
+                    pill_fixed_in_place = True
+            else: # horizontal
+                if (self.current_position[1] > 0 and
+                        self.map[self.current_position[0]][self.current_position[1] - 1] == "\0" and
+                        self.map[self.current_position[0] + 1][self.current_position[1] - 1] == "\0"): # Free space to move down
+                    self.current_position[1] -= 1
+                else:
+                    self.map[self.current_position[0]][self.current_position[1]] = self.current_pill[0]
+                    self.map[self.current_position[0] + 1][self.current_position[1]] = self.current_pill [1]
+                    pill_fixed_in_place = True
+        elif key == "d": # right
+            if self.current_orientation == Orientation.HORIZONTAL:
+                if self.current_position[0] < 6 and self.map[self.current_position[0] + 2][self.current_position[1]] == "\0": # Free space to move right
+                    self.current_position[0] += 1
+            else: # vertical
+                if (self.current_position[0] < 7 and
+                        self.map[self.current_position[0] + 1][self.current_position[1]] == "\0" and
+                        self.map[self.current_position[0] + 1][self.current_position[1] - 1] == "\0"): # Free space to move right
+                    self.current_position[0] += 1
+        elif key == "a": # left
+            if self.current_orientation == Orientation.HORIZONTAL:
+                if self.current_position[0] > 0 and self.map[self.current_position[0] - 1][self.current_position[1]] == "\0": # Free space to move left
+                    self.current_position[0] -= 1
+            else: # vertical
+                if (self.current_position[0] > 0 and
+                        self.map[self.current_position[0] - 1][self.current_position[1]] == "\0" and
+                        self.map[self.current_position[0] - 1][self.current_position[1] - 1] == "\0"): # Free space to move left
+                    self.current_position[0] -= 1
+        elif key == "w": # harddrop
+            # when y increases, we know we've moved on to a new capsule.
+            current_y = self.current_position[1]
+            self.do_player_move("s") # just use the down move we've already made
+            still_dropping = self.running and self.current_position[1] < current_y
+            current_y = self.current_position[1]
+            while still_dropping:
+                self.do_player_move("s") # just use the down move we've already made
+                still_dropping = self.running and self.current_position[1] < current_y
+                current_y = self.current_position[1]
+        elif key == "q": # rotate_ccw
+            raise NotImplementedError
+        elif key == "e": # rotate_cw
+            raise NotImplementedError
+        else:
+            raise KeyError
 
-        ...
-        #self.msg_panel.add(str(key))
-        
+        need_to_check_for_more_changes = pill_fixed_in_place
+        while need_to_check_for_more_changes:
+            need_to_check_for_more_changes = self.make_things_fall()
+
+        if pill_fixed_in_place:
+            if self.map[3][15] == self.EMPTY and self.map[4][15] == self.EMPTY:
+                self.current_pill = self.capsule_queue.popleft()
+                self.capsule_queue.append(self.current_pill)
+                self.current_position = [3,15]
+                self.current_orientation = Orientation.HORIZONTAL
+            else:
+                # TODO: good game msg
+                self.running = False
+
+    def make_things_fall(self) -> bool:
+        return False # TODO
 
     def is_running(self):
         return self.running
@@ -270,24 +336,22 @@ class DrCYL(GridGame):
                                 
                                 """
 
+        # Draw frame
         for rowi, row in enumerate(grid.split("\n")):
             for coli, col in enumerate(row):
                 frame_buffer.set(coli, rowi, col)
 
+        # Draw bottle
         for coli, col in enumerate(self.map):
             for rowi, row in enumerate(col):
                 frame_buffer.set(coli+4, self.MAP_HEIGHT - rowi + 4, row)
 
-        # # End of the game
-        # if self.turns >= self.MAX_TURNS:
-        #     self.msg_panel.add("You are out of moves.")
-
-        # if not self.running:
-        #     self.msg_panel.add("GAME 0VER: Score:" + str(self.score))
-
-        # # Update Status
-        # self.status_panel["Score"] = self.score
-        # self.status_panel["Move"] = str(self.turns) + " of " + str(self.MAX_TURNS)
+        # Draw currently falling pill
+        frame_buffer.set(self.current_position[0] + 4, self.MAP_HEIGHT - self.current_position[1] + 4, self.current_pill[0])
+        if self.current_orientation == Orientation.HORIZONTAL:
+            frame_buffer.set(self.current_position[0] + 1 + 4, self.MAP_HEIGHT - self.current_position[1] + 4, self.current_pill[1])
+        else:
+            frame_buffer.set(self.current_position[0] + 4, self.MAP_HEIGHT - (self.current_position[1] + 1) + 4, self.current_pill[1])
 
 
 if __name__ == '__main__':
