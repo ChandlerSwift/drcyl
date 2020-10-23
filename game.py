@@ -93,7 +93,6 @@ class DrCYL(GridGame):
            012345678
         """
         self.map = [['\0'] * self.MAP_HEIGHT for i in range(self.MAP_WIDTH)]
-        print(self.map)
 
         self.current_pill = self.capsule_queue.popleft()
         self.capsule_queue.append(self.current_pill)
@@ -101,7 +100,7 @@ class DrCYL(GridGame):
         self.current_orientation = Orientation.HORIZONTAL
 
     def generate_grid(self, level: int):
-        self.viruses_left = 4 * self.level + 1
+        self.viruses_left = 4 * (self.level + 1)
         viruses_to_generate = self.viruses_left
 
         while viruses_to_generate > 0:
@@ -111,7 +110,7 @@ class DrCYL(GridGame):
     def place_virus(self, remaining_viruses: int, level: int):
         # https://tetris.wiki/Dr._Mario#Virus_Generation
         level = min(level, 19)
-        max_row = [10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,11,11,12,12,13][level]
+        max_row = [10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,11,11,12,12,13][level] - 1 # they were 1-indexed
         y = self.random.randint(0,15)
         while y > max_row:
             y = self.random.randint(0,15)
@@ -121,7 +120,7 @@ class DrCYL(GridGame):
             color = self.YELLOW_VIRUS
         elif color_int == 1:
             color = self.RED_VIRUS
-        elif color_int == 3:
+        elif color_int == 2:
             color = self.BLUE_VIRUS
         else:
             color_int = self.random.randint(0,15)
@@ -136,7 +135,7 @@ class DrCYL(GridGame):
             if x == 8:
                 x = 0
                 y += 1
-            if y == 16:
+            if y > max_row:
                 return remaining_viruses
 
             # Check in all four cardinal directions 2 cells away from the candidate virus position the virus contents of the bottle.
@@ -247,6 +246,7 @@ class DrCYL(GridGame):
     def draw_screen(self, frame_buffer):
 
         grid = f"""                                
+                                
      \xD5\xCB\xCD\xCD\xCB\xB8                     
       \xBA  \xBA                      
    \xC9\xCD\xCD\xBC  \xC8\xCD\xCD\xBB                   
@@ -262,7 +262,6 @@ class DrCYL(GridGame):
    \xBA        \xBA  viruses left: {str(self.viruses_left).zfill(2)} 
    \xBA        \xBA                   
    \xBA        \xBA      level: {str(self.level).zfill(2)}    
-   \xBA        \xBA                   
    \xBA        \xBA                   
    \xBA        \xBA                   
    \xBA        \xBA                   
