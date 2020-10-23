@@ -24,9 +24,6 @@ board = """
    |        |                   
    |        |                   
    +--------+                   
-                                
-                                
-                                
 """
 
 RED_VIRUS    = 'X'
@@ -55,7 +52,7 @@ for i in range(16):
 def generate_grid(level: int):
     level = min(level, 20)
     level = max(level, 1)
-    remaining_viruses = 4 * level + 1
+    remaining_viruses = 4 * (level + 1)
 
     setchar(29,13,str(remaining_viruses).zfill(2)[0])
     setchar(30,13,str(remaining_viruses).zfill(2)[1])
@@ -70,7 +67,7 @@ def generate_grid(level: int):
 def place_virus(remaining_viruses, level, game_grid):
     # https://tetris.wiki/Dr._Mario#Virus_Generation
     level = min(level, 19)
-    max_row = [10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,11,11,12,12,13][level]
+    max_row = [10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,11,11,12,12,13][level] - 1
     y = random.randint(0,15)
     while y > max_row:
         y = random.randint(0,15)
