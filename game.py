@@ -184,11 +184,11 @@ class DrCYL(GridGame):
         if key == "s": # down
             fix_pill_in_place = False
             if self.current_orientation == Orientation.VERTICAL:
-                if self.current_position[1] > 1 and self.map[self.current_position[0]][self.current_position[1] - 1] == self.EMPTY: # Free space to move down
+                if self.current_position[1] > 0 and self.map[self.current_position[0]][self.current_position[1] - 1] == self.EMPTY: # Free space to move down
                     self.current_position[1] -= 1
                 else:
-                    self.map[self.current_position[0]][self.current_position[1]] = self.current_pill[0]
-                    self.map[self.current_position[0]][self.current_position[1] - 1] = self.current_pill [1]
+                    self.map[self.current_position[0]][self.current_position[1] + 1] = self.current_pill[0]
+                    self.map[self.current_position[0]][self.current_position[1]] = self.current_pill [1]
                     pill_fixed_in_place = True
             else: # horizontal
                 if (self.current_position[1] > 0 and
@@ -237,7 +237,7 @@ class DrCYL(GridGame):
                 if self.current_position[0] < 7 and self.map[self.current_position[0] + 1][self.current_position[1]] == self.EMPTY:
                     self.current_orientation = Orientation.HORIZONTAL
                     self.current_pill = self.current_pill[1] + self.current_pill[0]
-                elif self.map[self.current_position[0] - 1][self.current_position[1]] == self.EMPTY: # can kick left
+                elif self.current_position[0] > 0 and self.map[self.current_position[0] - 1][self.current_position[1]] == self.EMPTY: # can kick left
                     self.current_orientation = Orientation.HORIZONTAL
                     self.current_pill = self.current_pill[1] + self.current_pill[0]
                     self.current_position[0] -= 1
@@ -250,7 +250,7 @@ class DrCYL(GridGame):
             else: # vertical
                 if self.current_position[0] < 7 and self.map[self.current_position[0] + 1][self.current_position[1]] == self.EMPTY:
                     self.current_orientation = Orientation.HORIZONTAL
-                elif self.map[self.current_position[0] - 1][self.current_position[1]] == self.EMPTY: # can kick left
+                elif self.current_position[0] > 0 and self.map[self.current_position[0] - 1][self.current_position[1]] == self.EMPTY: # can kick left
                     self.current_orientation = Orientation.HORIZONTAL
                     self.current_position[0] -= 1
                     self.current_orientation = Orientation.HORIZONTAL
