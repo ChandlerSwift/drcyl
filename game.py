@@ -92,7 +92,7 @@ class DrCYL(GridGame):
           +---------+
            012345678
         """
-        self.map = [['\0'] * self.MAP_HEIGHT for i in range(self.MAP_WIDTH)]
+        self.map = [[self.EMPTY] * self.MAP_HEIGHT for i in range(self.MAP_WIDTH)]
 
         self.current_pill = self.capsule_queue.popleft()
         self.capsule_queue.append(self.current_pill)
@@ -134,7 +134,7 @@ class DrCYL(GridGame):
                 self.YELLOW_VIRUS, self.RED_VIRUS, self.BLUE_VIRUS, self.RED_VIRUS][color_int]
         blocked_on_colors = True
         two_away_cells = []
-        while self.map[x][y] != '\0' or blocked_on_colors:
+        while self.map[x][y] != self.EMPTY or blocked_on_colors:
             x += 1
             if x == 8:
                 x = 0
@@ -184,7 +184,7 @@ class DrCYL(GridGame):
         if key == "s": # down
             fix_pill_in_place = False
             if self.current_orientation == Orientation.VERTICAL:
-                if self.current_position[1] > 1 and self.map[self.current_position[0]][self.current_position[1] - 1] == "\0": # Free space to move down
+                if self.current_position[1] > 1 and self.map[self.current_position[0]][self.current_position[1] - 1] == self.EMPTY: # Free space to move down
                     self.current_position[1] -= 1
                 else:
                     self.map[self.current_position[0]][self.current_position[1]] = self.current_pill[0]
@@ -192,8 +192,8 @@ class DrCYL(GridGame):
                     pill_fixed_in_place = True
             else: # horizontal
                 if (self.current_position[1] > 0 and
-                        self.map[self.current_position[0]][self.current_position[1] - 1] == "\0" and
-                        self.map[self.current_position[0] + 1][self.current_position[1] - 1] == "\0"): # Free space to move down
+                        self.map[self.current_position[0]][self.current_position[1] - 1] == self.EMPTY and
+                        self.map[self.current_position[0] + 1][self.current_position[1] - 1] == self.EMPTY): # Free space to move down
                     self.current_position[1] -= 1
                 else:
                     self.map[self.current_position[0]][self.current_position[1]] = self.current_pill[0]
@@ -201,21 +201,21 @@ class DrCYL(GridGame):
                     pill_fixed_in_place = True
         elif key == "d": # right
             if self.current_orientation == Orientation.HORIZONTAL:
-                if self.current_position[0] < 6 and self.map[self.current_position[0] + 2][self.current_position[1]] == "\0": # Free space to move right
+                if self.current_position[0] < 6 and self.map[self.current_position[0] + 2][self.current_position[1]] == self.EMPTY: # Free space to move right
                     self.current_position[0] += 1
             else: # vertical
                 if (self.current_position[0] < 7 and
-                        (self.current_position[1] == 15 or self.map[self.current_position[0] + 1][self.current_position[1] + 1] == "\0") and # don't check the top if we're above the map
-                        self.map[self.current_position[0] + 1][self.current_position[1]] == "\0"): # Free space to move right
+                        (self.current_position[1] == 15 or self.map[self.current_position[0] + 1][self.current_position[1] + 1] == self.EMPTY) and # don't check the top if we're above the map
+                        self.map[self.current_position[0] + 1][self.current_position[1]] == self.EMPTY): # Free space to move right
                     self.current_position[0] += 1
         elif key == "a": # left
             if self.current_orientation == Orientation.HORIZONTAL:
-                if self.current_position[0] > 0 and self.map[self.current_position[0] - 1][self.current_position[1]] == "\0": # Free space to move left
+                if self.current_position[0] > 0 and self.map[self.current_position[0] - 1][self.current_position[1]] == self.EMPTY: # Free space to move left
                     self.current_position[0] -= 1
             else: # vertical
                 if (self.current_position[0] > 0 and
-                        (self.current_position[1] == 15 or self.map[self.current_position[0] - 1][self.current_position[1] + 1] == "\0") and
-                        self.map[self.current_position[0] - 1][self.current_position[1]] == "\0"): # Free space to move left
+                        (self.current_position[1] == 15 or self.map[self.current_position[0] - 1][self.current_position[1] + 1] == self.EMPTY) and
+                        self.map[self.current_position[0] - 1][self.current_position[1]] == self.EMPTY): # Free space to move left
                     self.current_position[0] -= 1
         elif key == "w": # harddrop
             # when y increases, we know we've moved on to a new capsule.
@@ -231,10 +231,10 @@ class DrCYL(GridGame):
         elif key == "q": # rotate_ccw
             if self.current_orientation == Orientation.HORIZONTAL:
                 # if we're on the top, we can always rotate counterclockwise; the rightmost simply flips above the leftmost.
-                if self.current_position[1] == 15 or self.map[self.current_position[0]][self.current_position[1] + 1] == "\0":
+                if self.current_position[1] == 15 or self.map[self.current_position[0]][self.current_position[1] + 1] == self.EMPTY:
                     self.current_orientation = Orientation.VERTICAL
             else: # vertical
-                if self.current_position[0] < 7 and self.map[self.current_position[0] + 1][self.current_position[1]] == "\0":
+                if self.current_position[0] < 7 and self.map[self.current_position[0] + 1][self.current_position[1]] == self.EMPTY:
                     self.current_orientation = Orientation.HORIZONTAL
                     self.current_pill = self.current_pill[1] + self.current_pill[0]
                 elif self.map[self.current_position[0] - 1][self.current_position[1]] == self.EMPTY: # can kick left
@@ -244,7 +244,7 @@ class DrCYL(GridGame):
         elif key == "e": # rotate_cw
             if self.current_orientation == Orientation.HORIZONTAL:
                 # if we're on the top, we can always rotate counterclockwise; the rightmost simply flips above the leftmost.
-                if self.current_position[1] == 15 or self.map[self.current_position[0]][self.current_position[1] + 1] == "\0":
+                if self.current_position[1] == 15 or self.map[self.current_position[0]][self.current_position[1] + 1] == self.EMPTY:
                     self.current_pill = self.current_pill[1] + self.current_pill[0]
                     self.current_orientation = Orientation.VERTICAL
             else: # vertical
