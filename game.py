@@ -184,7 +184,7 @@ class DrCYL(GridGame):
         if key == "s": # down
             fix_pill_in_place = False
             if self.current_orientation == Orientation.VERTICAL:
-                if self.current_position[1] > 1 and self.map[self.current_position[0]][self.current_position[1] - 2] == "\0": # Free space to move down
+                if self.current_position[1] > 1 and self.map[self.current_position[0]][self.current_position[1] - 1] == "\0": # Free space to move down
                     self.current_position[1] -= 1
                 else:
                     self.map[self.current_position[0]][self.current_position[1]] = self.current_pill[0]
