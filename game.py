@@ -380,6 +380,20 @@ class DrCYL(GridGame):
         else: # self.current_orientation = Orientation.VERTICAL
             frame_buffer.set(self.current_position[0] + 4, self.MAP_HEIGHT - (self.current_position[1] + 1) + 4, self.current_pill[1])
 
+        if not self.running:
+            lose_str = f"Good game! Your score: {self.score}"
+            left_offset = ((self.SCREEN_WIDTH - len(lose_str)) // 2)
+            frame_buffer.set(left_offset - 1, self.SCREEN_HEIGHT // 2 - 1, "\xC9")
+            frame_buffer.set(left_offset - 1, self.SCREEN_HEIGHT // 2, "\xBA")
+            frame_buffer.set(left_offset - 1, self.SCREEN_HEIGHT // 2 + 1, "\xC8")
+            for i, c in enumerate(lose_str):
+                frame_buffer.set(left_offset + i, self.SCREEN_HEIGHT // 2 + 1, "\xCD")
+                frame_buffer.set(left_offset + i, self.SCREEN_HEIGHT // 2, c)
+                frame_buffer.set(left_offset + i, self.SCREEN_HEIGHT // 2 - 1, "\xCD")
+            frame_buffer.set(left_offset + len(lose_str), self.SCREEN_HEIGHT // 2 - 1, "\xBB")
+            frame_buffer.set(left_offset + len(lose_str), self.SCREEN_HEIGHT // 2, "\xBA")
+            frame_buffer.set(left_offset + len(lose_str), self.SCREEN_HEIGHT // 2 + 1, "\xBC")
+
 
 if __name__ == '__main__':
     from CYLGame import run
