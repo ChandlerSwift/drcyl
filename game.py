@@ -81,7 +81,7 @@ class DrCYL(GridGame):
         #     self.capsule_queue.append(new_pill)
         self.capsule_queue = deque(self.random.choices(self.CAPSULES, k=128))
 
-        self.level = 20
+        self.level = 1
 
         """
         self.map[x][x] represents an (x,y) coordinate pair, 0-indexed from the
