@@ -96,6 +96,10 @@ class DrCYL(GridGame):
 
         self.current_pill = self.capsule_queue.popleft()
         self.capsule_queue.append(self.current_pill)
+
+        # current_position represents the position of the bottom left square.
+        # That is, if the domino is vertical, it's the lower of two positions
+        # occupied; if it is horizontal, it's the leftmost of the two positions.
         self.current_position = [3,15]
         self.current_orientation = Orientation.HORIZONTAL
 
@@ -223,10 +227,25 @@ class DrCYL(GridGame):
                 self.do_player_move("s") # just use the down move we've already made
                 still_dropping = self.running and self.current_position[1] < current_y
                 current_y = self.current_position[1]
+        # Rotations: taken from https://harddrop.com/wiki/Dr._Mario
         elif key == "q": # rotate_ccw
-            raise NotImplementedError
+            if self.current_orientation == Orientation.HORIZONTAL:
+                # if we're on the top, we can always rotate counterclockwise; the rightmost simply flips above the leftmost.
+                if self.current_position[1] == 15 or self.map[self.current_position[0]][self.current_position[1] + 1] == "\0":
+                    self.current_pill = self.current_pill[1] + self.current_pill[0]
+                    self.current_orientation = Orientation.VERTICAL
+            else: # vertical # TODO: check with Dustin about kicks
+                if self.current_position[0] < 7 and self.map[self.current_position[0] + 1][self.current_position[1]] == "\0":
+                    self.current_orientation = Orientation.HORIZONTAL
         elif key == "e": # rotate_cw
-            raise NotImplementedError
+            if self.current_orientation == Orientation.HORIZONTAL:
+                # if we're on the top, we can always rotate counterclockwise; the rightmost simply flips above the leftmost.
+                if self.current_position[1] == 15 or self.map[self.current_position[0]][self.current_position[1] + 1] == "\0":
+                    self.current_orientation = Orientation.VERTICAL
+            else: # vertical # TODO: check with Dustin about kicks
+                if self.map[self.current_position[0] + 1][self.current_position[1]] == "\0":
+                    self.current_orientation = Orientation.HORIZONTAL
+                    self.current_pill = self.current_pill[1] + self.current_pill[0]
         else:
             raise KeyError
 
@@ -350,7 +369,7 @@ class DrCYL(GridGame):
         frame_buffer.set(self.current_position[0] + 4, self.MAP_HEIGHT - self.current_position[1] + 4, self.current_pill[0])
         if self.current_orientation == Orientation.HORIZONTAL:
             frame_buffer.set(self.current_position[0] + 1 + 4, self.MAP_HEIGHT - self.current_position[1] + 4, self.current_pill[1])
-        else:
+        else: # self.current_orientation = Orientation.VERTICAL
             frame_buffer.set(self.current_position[0] + 4, self.MAP_HEIGHT - (self.current_position[1] + 1) + 4, self.current_pill[1])
 
 
