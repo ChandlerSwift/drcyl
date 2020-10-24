@@ -232,20 +232,20 @@ class DrCYL(GridGame):
             if self.current_orientation == Orientation.HORIZONTAL:
                 # if we're on the top, we can always rotate counterclockwise; the rightmost simply flips above the leftmost.
                 if self.current_position[1] == 15 or self.map[self.current_position[0]][self.current_position[1] + 1] == "\0":
-                    self.current_pill = self.current_pill[1] + self.current_pill[0]
-                    self.current_orientation = Orientation.VERTICAL
-            else: # vertical # TODO: check with Dustin about kicks
-                if self.current_position[0] < 7 and self.map[self.current_position[0] + 1][self.current_position[1]] == "\0":
-                    self.current_orientation = Orientation.HORIZONTAL
-        elif key == "e": # rotate_cw
-            if self.current_orientation == Orientation.HORIZONTAL:
-                # if we're on the top, we can always rotate counterclockwise; the rightmost simply flips above the leftmost.
-                if self.current_position[1] == 15 or self.map[self.current_position[0]][self.current_position[1] + 1] == "\0":
                     self.current_orientation = Orientation.VERTICAL
             else: # vertical # TODO: check with Dustin about kicks
                 if self.map[self.current_position[0] + 1][self.current_position[1]] == "\0":
                     self.current_orientation = Orientation.HORIZONTAL
                     self.current_pill = self.current_pill[1] + self.current_pill[0]
+        elif key == "e": # rotate_cw
+            if self.current_orientation == Orientation.HORIZONTAL:
+                # if we're on the top, we can always rotate counterclockwise; the rightmost simply flips above the leftmost.
+                if self.current_position[1] == 15 or self.map[self.current_position[0]][self.current_position[1] + 1] == "\0":
+                    self.current_pill = self.current_pill[1] + self.current_pill[0]
+                    self.current_orientation = Orientation.VERTICAL
+            else: # vertical # TODO: check with Dustin about kicks
+                if self.current_position[0] < 7 and self.map[self.current_position[0] + 1][self.current_position[1]] == "\0":
+                    self.current_orientation = Orientation.HORIZONTAL
         else:
             raise KeyError
 
