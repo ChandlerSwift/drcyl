@@ -205,7 +205,7 @@ class DrCYL(GridGame):
                     self.current_position[0] += 1
             else: # vertical
                 if (self.current_position[0] < 7 and
-                        self.map[self.current_position[0] + 1][self.current_position[1] + 1] == "\0" and
+                        (self.current_position[1] == 15 or self.map[self.current_position[0] + 1][self.current_position[1] + 1] == "\0") and # don't check the top if we're above the map
                         self.map[self.current_position[0] + 1][self.current_position[1]] == "\0"): # Free space to move right
                     self.current_position[0] += 1
         elif key == "a": # left
