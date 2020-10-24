@@ -205,8 +205,8 @@ class DrCYL(GridGame):
                     self.current_position[0] += 1
             else: # vertical
                 if (self.current_position[0] < 7 and
-                        self.map[self.current_position[0] + 1][self.current_position[1]] == "\0" and
-                        self.map[self.current_position[0] + 1][self.current_position[1] - 1] == "\0"): # Free space to move right
+                        self.map[self.current_position[0] + 1][self.current_position[1] + 1] == "\0" and
+                        self.map[self.current_position[0] + 1][self.current_position[1]] == "\0"): # Free space to move right
                     self.current_position[0] += 1
         elif key == "a": # left
             if self.current_orientation == Orientation.HORIZONTAL:
@@ -214,8 +214,8 @@ class DrCYL(GridGame):
                     self.current_position[0] -= 1
             else: # vertical
                 if (self.current_position[0] > 0 and
-                        self.map[self.current_position[0] - 1][self.current_position[1]] == "\0" and
-                        self.map[self.current_position[0] - 1][self.current_position[1] - 1] == "\0"): # Free space to move left
+                        self.map[self.current_position[0] - 1][self.current_position[1] + 1] == "\0" and
+                        self.map[self.current_position[0] - 1][self.current_position[1]] == "\0"): # Free space to move left
                     self.current_position[0] -= 1
         elif key == "w": # harddrop
             # when y increases, we know we've moved on to a new capsule.
