@@ -256,7 +256,8 @@ class DrCYL(GridGame):
                     self.current_position[1] -= 1
                 else:
                     self.map[self.current_position[0]][self.current_position[1]] = self.current_pill[0]
-                    self.map[self.current_position[0]][self.current_position[1] + 1] = self.current_pill [1]
+                    if self.current_position[1] < 15: # not on the top row
+                        self.map[self.current_position[0]][self.current_position[1] + 1] = self.current_pill [1]
                     pill_fixed_in_place = True
             else: # horizontal
                 if (self.current_position[1] > 0 and
