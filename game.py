@@ -6,6 +6,9 @@ from CYLGame.Game import ConstMapping
 import itertools
 from collections import deque
 from enum import Enum
+import time
+
+PERF_DEBUG = False
 
 class Orientation(Enum):
     VERTICAL = 1
@@ -66,7 +69,7 @@ class DrCYL(GridGame):
 
     RED_PILL_FACING_DOWN     = 'd'
     YELLOW_PILL_FACING_DOWN  = 'h'
-    BLUE_PILL_FACING_DOWN    = ''
+    BLUE_PILL_FACING_DOWN    = 'l'
 
     def __init__(self, random):
         self.random = random
@@ -102,6 +105,8 @@ class DrCYL(GridGame):
         # occupied; if it is horizontal, it's the leftmost of the two positions.
         self.current_position = [3,15]
         self.current_orientation = Orientation.HORIZONTAL
+
+        self.pills_changed_last_turn = False
 
     def generate_grid(self, level: int):
         self.viruses_left = 4 * (self.level + 1)
@@ -176,8 +181,71 @@ class DrCYL(GridGame):
         pass
 
     def do_turn(self):
-        self.do_player_move(self.player.move)
+        start_time = time.time()
+        pills_removed_this_turn = pills_fell_this_turn = False
+        if self.pills_changed_last_turn:
+            pills_removed_this_turn = self.remove_pills()
+            if not pills_removed_this_turn:
+                pills_fell_this_turn = self.pills_fall()
+
+        self.pills_changed_last_turn = pills_removed_this_turn or pills_fell_this_turn
+        if not self.pills_changed_last_turn:
+            if not self.current_pill: # we need a new pill
+                if self.map[3][15] == self.EMPTY and self.map[4][15] == self.EMPTY:
+                    self.current_pill = self.capsule_queue.popleft()
+                    self.capsule_queue.append(self.current_pill)
+                    self.current_position = [3,15]
+                    self.current_orientation = Orientation.HORIZONTAL
+                else:
+                    self.running = False
+                    return
+            self.do_player_move(self.player.move)
+
         self.update_vars_for_player()
+        if PERF_DEBUG:
+            print(f"Elapsed time: {time.time()-start_time}")
+
+    def remove_pills(self, dry_run=False) -> bool: # TODO: break pairs
+        # TODO: this doesn't work if multiple rows are completed. For example,
+        # in the following scenario, if an O is added on the blank, only the
+        # vertical column will be cleared.
+        # _ O O O
+        # O X X X
+        # O X X X
+        # O X X X
+        removed_pills = False
+        def color(s: str):
+            if s in [self.RED_VIRUS, self.RED_PILL, self.RED_PILL_FACING_UP, self.RED_PILL_FACING_DOWN, self.RED_PILL_FACING_LEFT, self.RED_PILL_FACING_RIGHT]:
+                return "RED"
+            if s in [self.YELLOW_VIRUS, self.YELLOW_PILL, self.YELLOW_PILL_FACING_UP, self.YELLOW_PILL_FACING_DOWN, self.YELLOW_PILL_FACING_LEFT, self.YELLOW_PILL_FACING_RIGHT]:
+                return "YELLOW"
+            if s in [self.BLUE_VIRUS, self.BLUE_PILL, self.BLUE_PILL_FACING_UP, self.BLUE_PILL_FACING_DOWN, self.BLUE_PILL_FACING_LEFT, self.BLUE_PILL_FACING_RIGHT]:
+                return "BLUE"
+        for x in range(self.MAP_WIDTH):
+            for y in range(self.MAP_HEIGHT):
+                if y < 13 and color(self.map[x][y]) == color(self.map[x][y+1]) == color(self.map[x][y+2]) == color(self.map[x][y+3]) != None:
+                    removed_pills = True
+                    current_color = color(self.map[x][y])
+                    current_y = y
+                    while current_y < self.MAP_HEIGHT and color(self.map[x][current_y]) == current_color:
+                        self.map[x][current_y] = self.EMPTY
+                        current_y += 1
+                if x < 5 and color(self.map[x][y]) == color(self.map[x+1][y]) == color(self.map[x+2][y]) == color(self.map[x+3][y]) != None:
+                    removed_pills = True
+                    current_color = color(self.map[x][y])
+                    current_x = x
+                    while current_x < self.MAP_WIDTH and color(self.map[current_x][y]) == current_color:
+                        self.map[current_x][y] = self.EMPTY
+                        current_x += 1
+        return removed_pills
+
+    def pills_fall(self) -> bool:
+        pills_fell = False
+        for x in range(self.MAP_WIDTH):
+            for y in range(self.MAP_HEIGHT):
+                if self.map[x][y] in 'aei' and self.map[x] - 1:
+                    ...
+        return pills_fell
 
     def do_player_move(self, key):
         pill_fixed_in_place = False
@@ -257,22 +325,9 @@ class DrCYL(GridGame):
         else:
             raise KeyError
 
-        need_to_check_for_more_changes = pill_fixed_in_place
-        while need_to_check_for_more_changes:
-            need_to_check_for_more_changes = self.make_things_fall()
-
         if pill_fixed_in_place:
-            if self.map[3][15] == self.EMPTY and self.map[4][15] == self.EMPTY:
-                self.current_pill = self.capsule_queue.popleft()
-                self.capsule_queue.append(self.current_pill)
-                self.current_position = [3,15]
-                self.current_orientation = Orientation.HORIZONTAL
-            else:
-                # TODO: good game msg
-                self.running = False
-
-    def make_things_fall(self) -> bool:
-        return False # TODO
+            self.pills_changed_last_turn = True
+            self.current_pill = None
 
     def is_running(self):
         return self.running
@@ -374,11 +429,12 @@ class DrCYL(GridGame):
                 frame_buffer.set(coli+4, self.MAP_HEIGHT - rowi + 4, row)
 
         # Draw currently falling pill
-        frame_buffer.set(self.current_position[0] + 4, self.MAP_HEIGHT - self.current_position[1] + 4, self.current_pill[0])
-        if self.current_orientation == Orientation.HORIZONTAL:
-            frame_buffer.set(self.current_position[0] + 1 + 4, self.MAP_HEIGHT - self.current_position[1] + 4, self.current_pill[1])
-        else: # self.current_orientation = Orientation.VERTICAL
-            frame_buffer.set(self.current_position[0] + 4, self.MAP_HEIGHT - (self.current_position[1] + 1) + 4, self.current_pill[1])
+        if self.current_pill:
+            frame_buffer.set(self.current_position[0] + 4, self.MAP_HEIGHT - self.current_position[1] + 4, self.current_pill[0])
+            if self.current_orientation == Orientation.HORIZONTAL:
+                frame_buffer.set(self.current_position[0] + 1 + 4, self.MAP_HEIGHT - self.current_position[1] + 4, self.current_pill[1])
+            else: # self.current_orientation = Orientation.VERTICAL
+                frame_buffer.set(self.current_position[0] + 4, self.MAP_HEIGHT - (self.current_position[1] + 1) + 4, self.current_pill[1])
 
         if not self.running:
             lose_str = f"Good game! Your score: {self.score}"
