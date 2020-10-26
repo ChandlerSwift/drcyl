@@ -45,31 +45,31 @@ class DrCYL(GridGame):
     PLAYER = '@'
     EMPTY = '\0'
 
-    RED_VIRUS    = 'X'
-    YELLOW_VIRUS = 'O'
-    BLUE_VIRUS   = 'Z'
+    RED_VIRUS    = '\x01'
+    YELLOW_VIRUS = '\x02'
+    BLUE_VIRUS   = '\x03'
 
-    RED_PILL     = 'x'
-    YELLOW_PILL  = 'o'
-    BLUE_PILL    = 'z'
+    RED_PILL     = '\x11'
+    YELLOW_PILL  = '\x12'
+    BLUE_PILL    = '\x13'
 
     CAPSULES = ["".join(p) for p in itertools.product(RED_PILL+YELLOW_PILL+BLUE_PILL, repeat=2)]
 
-    RED_PILL_FACING_RIGHT     = 'a'
-    YELLOW_PILL_FACING_RIGHT  = 'e'
-    BLUE_PILL_FACING_RIGHT    = 'i'
+    RED_PILL_FACING_RIGHT     = '\x04'
+    YELLOW_PILL_FACING_RIGHT  = '\x05'
+    BLUE_PILL_FACING_RIGHT    = '\x06'
 
-    RED_PILL_FACING_LEFT     = 'b'
-    YELLOW_PILL_FACING_LEFT  = 'f'
-    BLUE_PILL_FACING_LEFT    = 'j'
+    RED_PILL_FACING_LEFT     = '\x07'
+    YELLOW_PILL_FACING_LEFT  = '\x08'
+    BLUE_PILL_FACING_LEFT    = '\x09'
 
-    RED_PILL_FACING_UP     = 'c'
-    YELLOW_PILL_FACING_UP  = 'g'
-    BLUE_PILL_FACING_UP    = 'k'
+    RED_PILL_FACING_UP     = '\x14'
+    YELLOW_PILL_FACING_UP  = '\x15'
+    BLUE_PILL_FACING_UP    = '\x16'
 
-    RED_PILL_FACING_DOWN     = 'd'
-    YELLOW_PILL_FACING_DOWN  = 'h'
-    BLUE_PILL_FACING_DOWN    = 'l'
+    RED_PILL_FACING_DOWN     = '\x17'
+    YELLOW_PILL_FACING_DOWN  = '\x18'
+    BLUE_PILL_FACING_DOWN    = '\x19'
 
     def __init__(self, random):
         self.random = random
