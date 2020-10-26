@@ -346,7 +346,8 @@ class DrCYL(GridGame):
                     self.current_position[0] -= 1
                     self.current_orientation = Orientation.HORIZONTAL
         else:
-            raise KeyError
+            pass
+            # raise KeyError
 
         if pill_fixed_in_place:
             self.pills_changed_last_turn = True
