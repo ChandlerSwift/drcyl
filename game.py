@@ -107,6 +107,7 @@ class DrCYL(GridGame):
         self.current_orientation = Orientation.HORIZONTAL
 
         self.pills_changed_last_turn = False
+        self.can_move = True
 
     def generate_grid(self, level: int):
         self.viruses_left = 4 * (self.level + 1)
@@ -185,20 +186,30 @@ class DrCYL(GridGame):
         pills_removed_this_turn = pills_fell_this_turn = False
         if self.pills_changed_last_turn:
             pills_removed_this_turn = self.remove_pills()
+            print("Pills were removed" if pills_removed_this_turn else "No pills removed")
             if not pills_removed_this_turn:
                 pills_fell_this_turn = self.pills_fall()
+                print("Pills fell" if pills_fell_this_turn else "No pills fell")
 
         self.pills_changed_last_turn = pills_removed_this_turn or pills_fell_this_turn
-        if not self.pills_changed_last_turn:
-            if not self.current_pill: # we need a new pill
-                if self.map[3][15] == self.EMPTY and self.map[4][15] == self.EMPTY:
-                    self.current_pill = self.capsule_queue.popleft()
-                    self.capsule_queue.append(self.current_pill)
-                    self.current_position = [3,15]
-                    self.current_orientation = Orientation.HORIZONTAL
-                else:
-                    self.running = False
-                    return
+
+        pills_will_be_removed_next_turn = pills_will_fall_next_turn = False
+        if self.pills_changed_last_turn: # well, this turn, really.
+            pills_will_be_removed_next_turn = self.remove_pills(dry_run=True)
+            if not pills_will_be_removed_next_turn:
+                pills_will_fall_next_turn = self.pills_fall(dry_run=True)
+        self.can_move = not pills_will_be_removed_next_turn and not pills_will_fall_next_turn
+
+        if not self.current_pill: # we need a new pill
+            if self.map[3][15] == self.EMPTY and self.map[4][15] == self.EMPTY:
+                self.current_pill = self.capsule_queue.popleft()
+                self.capsule_queue.append(self.current_pill)
+                self.current_position = [3,15]
+                self.current_orientation = Orientation.HORIZONTAL
+            else:
+                self.running = False
+                return
+        if not self.pills_changed_last_turn: # well, this turn, really
             self.do_player_move(self.player.move)
 
         self.update_vars_for_player()
@@ -221,25 +232,36 @@ class DrCYL(GridGame):
                 return "YELLOW"
             if s in [self.BLUE_VIRUS, self.BLUE_PILL, self.BLUE_PILL_FACING_UP, self.BLUE_PILL_FACING_DOWN, self.BLUE_PILL_FACING_LEFT, self.BLUE_PILL_FACING_RIGHT]:
                 return "BLUE"
+        def is_virus(s: str) -> bool:
+            return s in [self.RED_VIRUS, self.YELLOW_VIRUS, self.BLUE_VIRUS]
+        viruses_removed = 0
         for x in range(self.MAP_WIDTH):
             for y in range(self.MAP_HEIGHT):
                 if y < 13 and color(self.map[x][y]) == color(self.map[x][y+1]) == color(self.map[x][y+2]) == color(self.map[x][y+3]) != None:
                     removed_pills = True
-                    current_color = color(self.map[x][y])
-                    current_y = y
-                    while current_y < self.MAP_HEIGHT and color(self.map[x][current_y]) == current_color:
-                        self.map[x][current_y] = self.EMPTY
-                        current_y += 1
+                    if not dry_run:
+                        current_color = color(self.map[x][y])
+                        current_y = y
+                        while current_y < self.MAP_HEIGHT and color(self.map[x][current_y]) == current_color:
+                            if is_virus(self.map[x][current_y]):
+                                viruses_removed += 1
+                            self.map[x][current_y] = self.EMPTY
+                            current_y += 1
                 if x < 5 and color(self.map[x][y]) == color(self.map[x+1][y]) == color(self.map[x+2][y]) == color(self.map[x+3][y]) != None:
                     removed_pills = True
-                    current_color = color(self.map[x][y])
-                    current_x = x
-                    while current_x < self.MAP_WIDTH and color(self.map[current_x][y]) == current_color:
-                        self.map[current_x][y] = self.EMPTY
-                        current_x += 1
+                    if not dry_run:
+                        current_color = color(self.map[x][y])
+                        current_x = x
+                        while current_x < self.MAP_WIDTH and color(self.map[current_x][y]) == current_color:
+                            if is_virus(self.map[current_x][y]):
+                                viruses_removed += 1
+                            self.map[current_x][y] = self.EMPTY
+                            current_x += 1
+        self.score += 100 * (2 ** viruses_removed - 1)
+        self.viruses_left -= viruses_removed
         return removed_pills
 
-    def pills_fall(self) -> bool:
+    def pills_fall(self, dry_run=False) -> bool:
         pills_fell = False
         for x in range(self.MAP_WIDTH):
             for y in range(self.MAP_HEIGHT):
@@ -328,6 +350,12 @@ class DrCYL(GridGame):
 
         if pill_fixed_in_place:
             self.pills_changed_last_turn = True
+
+            pills_will_be_removed_next_turn = self.remove_pills(dry_run=True)
+            if not pills_will_be_removed_next_turn:
+                pills_will_fall_next_turn = self.pills_fall(dry_run=True)
+            self.can_move = not pills_will_be_removed_next_turn and not pills_will_fall_next_turn
+
             self.current_pill = None
 
     def is_running(self):
@@ -355,6 +383,7 @@ class DrCYL(GridGame):
             "VERTICAL": Orientation.VERTICAL,
             "HORIZONTAL": Orientation.HORIZONTAL,
             "next_pill": self.capsule_queue[0],
+            "can_move": self.can_move
         }
 
         self.player.bot_vars = bot_vars
@@ -412,7 +441,7 @@ class DrCYL(GridGame):
    \xBA        \xBA                   
    \xBA        \xBA      level: {str(self.level).zfill(2)}    
    \xBA        \xBA                   
-   \xBA        \xBA                   
+   \xBA        \xBA  {"           " if self.player.bot_vars["can_move"] else "CANNOT MOVE"}      
    \xBA        \xBA                   
    \xBA        \xBA                   
    \xC8\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xBC                  
