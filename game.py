@@ -270,6 +270,10 @@ class DrCYL(GridGame):
         # O X X X
         # O X X X
         # O X X X
+        facing_up = [self.RED_PILL_FACING_UP, self.YELLOW_PILL_FACING_UP, self.BLUE_PILL_FACING_UP]
+        facing_right = [self.RED_PILL_FACING_RIGHT, self.YELLOW_PILL_FACING_RIGHT, self.BLUE_PILL_FACING_RIGHT]
+        facing_down = [self.RED_PILL_FACING_DOWN, self.YELLOW_PILL_FACING_DOWN, self.BLUE_PILL_FACING_DOWN]
+        facing_left = [self.RED_PILL_FACING_LEFT, self.YELLOW_PILL_FACING_LEFT, self.BLUE_PILL_FACING_LEFT]
         removed_pills = False
         def is_virus(s: str) -> bool:
             return s in [self.RED_VIRUS, self.YELLOW_VIRUS, self.BLUE_VIRUS]
@@ -277,6 +281,7 @@ class DrCYL(GridGame):
         for x in range(self.MAP_WIDTH):
             for y in range(self.MAP_HEIGHT):
                 if y < 13 and self.color(self.map[x][y]) == self.color(self.map[x][y+1]) == self.color(self.map[x][y+2]) == self.color(self.map[x][y+3]) != None:
+                    # columns
                     removed_pills = True
                     if not dry_run:
                         current_color = self.color(self.map[x][y])
@@ -284,9 +289,14 @@ class DrCYL(GridGame):
                         while current_y < self.MAP_HEIGHT and self.color(self.map[x][current_y]) == current_color:
                             if is_virus(self.map[x][current_y]):
                                 viruses_removed += 1
+                            if self.map[x][current_y] in facing_left: # attached to left
+                                self.map[x - 1][current_y] = self.PILLS[self.color(self.map[x - 1][current_y])]["single"] # break pair
+                            elif self.map[x][current_y] in facing_right: # attached to right
+                                self.map[x + 1][current_y] = self.PILLS[self.color(self.map[x + 1][current_y])]["single"] # break pair
                             self.map[x][current_y] = self.EMPTY
                             current_y += 1
                 if x < 5 and self.color(self.map[x][y]) == self.color(self.map[x+1][y]) == self.color(self.map[x+2][y]) == self.color(self.map[x+3][y]) != None:
+                    # rows
                     removed_pills = True
                     if not dry_run:
                         current_color = self.color(self.map[x][y])
@@ -294,6 +304,10 @@ class DrCYL(GridGame):
                         while current_x < self.MAP_WIDTH and self.color(self.map[current_x][y]) == current_color:
                             if is_virus(self.map[current_x][y]):
                                 viruses_removed += 1
+                            if self.map[current_x][y] in facing_up: # attached above
+                                self.map[current_x][y + 1] = self.PILLS[self.color(self.map[current_x][y + 1])]["single"] # break pair
+                            elif self.map[current_x][y] in facing_down: # attached to below
+                                self.map[current_x][y - 1] = self.PILLS[self.color(self.map[current_x][y - 1])]["single"] # break pair
                             self.map[current_x][y] = self.EMPTY
                             current_x += 1
         self.score += 100 * (2 ** viruses_removed - 1)
@@ -302,10 +316,25 @@ class DrCYL(GridGame):
 
     def pills_fall(self, dry_run=False) -> bool:
         pills_fell = False
+        single = [self.RED_PILL, self.YELLOW_PILL, self.BLUE_PILL]
+        facing_up = [self.RED_PILL_FACING_UP, self.YELLOW_PILL_FACING_UP, self.BLUE_PILL_FACING_UP]
+        facing_right = [self.RED_PILL_FACING_RIGHT, self.YELLOW_PILL_FACING_RIGHT, self.BLUE_PILL_FACING_RIGHT]
         for x in range(self.MAP_WIDTH):
-            for y in range(self.MAP_HEIGHT):
-                if self.map[x][y] in 'aei' and self.map[x] - 1:
-                    ...
+            for y in range(1, self.MAP_HEIGHT):
+                if self.map[x][y] in single and self.map[x][y-1] == self.EMPTY:
+                    self.map[x][y-1] = self.map[x][y]
+                    self.map[x][y] = self.EMPTY
+                    pills_fell = True
+                if self.map[x][y] in facing_up and self.map[x][y-1] == self.EMPTY:
+                    self.map[x][y-1] = self.map[x][y]
+                    self.map[x][y] = self.map[x][y+1]
+                    self.map[x][y+1] = self.EMPTY
+                    pills_fell = True
+                if self.map[x][y] in facing_right and self.map[x][y - 1] == self.EMPTY and self.map[x+1][y-1] == self.EMPTY:
+                    self.map[x][y-1] = self.map[x][y]
+                    self.map[x+1][y-1] = self.map[x+1][y]
+                    self.map[x][y] = self.map[x+1][y] = self.EMPTY
+                    pills_fell = True
         return pills_fell
 
     def do_player_move(self, key):
