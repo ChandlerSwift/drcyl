@@ -71,6 +71,32 @@ class DrCYL(GridGame):
     YELLOW_PILL_FACING_DOWN  = '\x18'
     BLUE_PILL_FACING_DOWN    = '\x19'
 
+    # TODO: this is the dumbest possible way to do this, but I can't think
+    # of a better way at the moment, and this seems to work.
+    PILLS = {
+        "BLUE": {
+            "single": BLUE_PILL,
+            "up": BLUE_PILL_FACING_UP,
+            "down": BLUE_PILL_FACING_DOWN,
+            "left": BLUE_PILL_FACING_LEFT,
+            "right": BLUE_PILL_FACING_RIGHT
+        },
+        "YELLOW": {
+            "single": YELLOW_PILL,
+            "up": YELLOW_PILL_FACING_UP,
+            "down": YELLOW_PILL_FACING_DOWN,
+            "left": YELLOW_PILL_FACING_LEFT,
+            "right": YELLOW_PILL_FACING_RIGHT
+        },
+        "RED": {
+            "single": RED_PILL,
+            "up": RED_PILL_FACING_UP,
+            "down": RED_PILL_FACING_DOWN,
+            "left": RED_PILL_FACING_LEFT,
+            "right": RED_PILL_FACING_RIGHT
+        }
+    }
+
     def color(self, s: str):
         if s in [self.RED_VIRUS, self.RED_PILL, self.RED_PILL_FACING_UP, self.RED_PILL_FACING_DOWN, self.RED_PILL_FACING_LEFT, self.RED_PILL_FACING_RIGHT]:
             return "RED"
@@ -120,34 +146,12 @@ class DrCYL(GridGame):
 
     def fix_pill(self):
         current_pill = self.current_pill
-        # TODO: this is the dumbest possible way to do this, but I can't think
-        # of a better way at the moment, and this seems to work.
-        pills = {
-            "BLUE": {
-                "up": self.BLUE_PILL_FACING_UP,
-                "down": self.BLUE_PILL_FACING_DOWN,
-                "left": self.BLUE_PILL_FACING_LEFT,
-                "right": self.BLUE_PILL_FACING_RIGHT
-            },
-            "YELLOW": {
-                "up": self.YELLOW_PILL_FACING_UP,
-                "down": self.YELLOW_PILL_FACING_DOWN,
-                "left": self.YELLOW_PILL_FACING_LEFT,
-                "right": self.YELLOW_PILL_FACING_RIGHT
-            },
-            "RED": {
-                "up": self.RED_PILL_FACING_UP,
-                "down": self.RED_PILL_FACING_DOWN,
-                "left": self.RED_PILL_FACING_LEFT,
-                "right": self.RED_PILL_FACING_RIGHT
-            }
-        }
         if self.current_orientation == Orientation.VERTICAL:
-            first = pills[self.color(current_pill[0])]["up"]
-            second = pills[self.color(current_pill[1])]["down"]
+            first = self.PILLS[self.color(current_pill[0])]["up"]
+            second = self.PILLS[self.color(current_pill[1])]["down"]
         else:
-            first = pills[self.color(current_pill[0])]["right"]
-            second = pills[self.color(current_pill[1])]["left"]
+            first = self.PILLS[self.color(current_pill[0])]["right"]
+            second = self.PILLS[self.color(current_pill[1])]["left"]
         self.current_pill = first + second
 
     def generate_grid(self, level: int):
@@ -312,9 +316,11 @@ class DrCYL(GridGame):
                 if self.current_position[1] > 0 and self.map[self.current_position[0]][self.current_position[1] - 1] == self.EMPTY: # Free space to move down
                     self.current_position[1] -= 1
                 else:
-                    self.map[self.current_position[0]][self.current_position[1]] = self.current_pill[0]
                     if self.current_position[1] < 15: # not on the top row
-                        self.map[self.current_position[0]][self.current_position[1] + 1] = self.current_pill [1]
+                        self.map[self.current_position[0]][self.current_position[1] + 1] = self.current_pill[1]
+                        self.map[self.current_position[0]][self.current_position[1]] = self.current_pill[0]
+                    else:
+                        self.map[self.current_position[0]][self.current_position[1]] = self.PILLS[self.color(self.current_pill[0])]["single"]
                     pill_fixed_in_place = True
             else: # horizontal
                 if (self.current_position[1] > 0 and
