@@ -227,6 +227,12 @@ class DrCYL(GridGame):
         pass
 
     def do_turn(self):
+        if self.viruses_left == 0: # generate new level
+            if self.level < 20:
+                self.level += 1
+            self.map = [[self.EMPTY] * self.MAP_HEIGHT for i in range(self.MAP_WIDTH)]
+            self.generate_grid(self.level)
+
         start_time = time.time()
         pills_removed_this_turn = pills_fell_this_turn = False
         if self.pills_changed_last_turn:
@@ -243,7 +249,7 @@ class DrCYL(GridGame):
             pills_will_be_removed_next_turn = self.remove_pills(dry_run=True)
             if not pills_will_be_removed_next_turn:
                 pills_will_fall_next_turn = self.pills_fall(dry_run=True)
-        self.can_move = not pills_will_be_removed_next_turn and not pills_will_fall_next_turn
+        self.can_move = not pills_will_be_removed_next_turn and not pills_will_fall_next_turn and self.viruses_left > 0
 
         if not self.current_pill: # we need a new pill
             if self.map[3][15] == self.EMPTY and self.map[4][15] == self.EMPTY:

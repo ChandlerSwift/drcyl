@@ -28,7 +28,14 @@ quickly as possible, so don't hesitate for too many turns!
 
 When you place a piece, you may destroy some pills. If you get a combo, or if
 pills need to fall, this may take a few turns to settle out, but will be worth
-additional points.
+additional points. Any move you make while pieces are falling won't have any
+effect, so the default code does the following check:
+
+```
+if not can_move {
+    return down # doesn't matter what we put here; it won't do anything.
+}
+```
 
 ## Sensors
 
