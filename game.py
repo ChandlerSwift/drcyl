@@ -293,6 +293,10 @@ class DrCYL(GridGame):
                                 self.map[x - 1][current_y] = self.PILLS[self.color(self.map[x - 1][current_y])]["single"] # break pair
                             elif self.map[x][current_y] in facing_right: # attached to right
                                 self.map[x + 1][current_y] = self.PILLS[self.color(self.map[x + 1][current_y])]["single"] # break pair
+                            elif self.map[x][current_y] in facing_up: # attached above
+                                self.map[x][current_y + 1] = self.PILLS[self.color(self.map[x][current_y + 1])]["single"] # break pair
+                            elif self.map[x][current_y] in facing_down: # attached to below
+                                self.map[x][current_y - 1] = self.PILLS[self.color(self.map[x][current_y - 1])]["single"] # break pair
                             self.map[x][current_y] = self.EMPTY
                             current_y += 1
                 if x < 5 and self.color(self.map[x][y]) == self.color(self.map[x+1][y]) == self.color(self.map[x+2][y]) == self.color(self.map[x+3][y]) != None:
@@ -304,7 +308,11 @@ class DrCYL(GridGame):
                         while current_x < self.MAP_WIDTH and self.color(self.map[current_x][y]) == current_color:
                             if is_virus(self.map[current_x][y]):
                                 viruses_removed += 1
-                            if self.map[current_x][y] in facing_up: # attached above
+                            if self.map[current_x][y] in facing_left: # attached to left
+                                self.map[current_x - 1][y] = self.PILLS[self.color(self.map[current_x - 1][y])]["single"] # break pair
+                            elif self.map[current_x][y] in facing_right: # attached to right
+                                self.map[current_x + 1][y] = self.PILLS[self.color(self.map[current_x + 1][y])]["single"] # break pair
+                            elif self.map[current_x][y] in facing_up: # attached above
                                 self.map[current_x][y + 1] = self.PILLS[self.color(self.map[current_x][y + 1])]["single"] # break pair
                             elif self.map[current_x][y] in facing_down: # attached to below
                                 self.map[current_x][y - 1] = self.PILLS[self.color(self.map[current_x][y - 1])]["single"] # break pair
