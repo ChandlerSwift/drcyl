@@ -330,18 +330,21 @@ class DrCYL(GridGame):
         for x in range(self.MAP_WIDTH):
             for y in range(1, self.MAP_HEIGHT):
                 if self.map[x][y] in single and self.map[x][y-1] == self.EMPTY:
-                    self.map[x][y-1] = self.map[x][y]
-                    self.map[x][y] = self.EMPTY
+                    if not dry_run:
+                        self.map[x][y-1] = self.map[x][y]
+                        self.map[x][y] = self.EMPTY
                     pills_fell = True
                 if self.map[x][y] in facing_up and self.map[x][y-1] == self.EMPTY:
-                    self.map[x][y-1] = self.map[x][y]
-                    self.map[x][y] = self.map[x][y+1]
-                    self.map[x][y+1] = self.EMPTY
+                    if not dry_run:
+                        self.map[x][y-1] = self.map[x][y]
+                        self.map[x][y] = self.map[x][y+1]
+                        self.map[x][y+1] = self.EMPTY
                     pills_fell = True
                 if self.map[x][y] in facing_right and self.map[x][y - 1] == self.EMPTY and self.map[x+1][y-1] == self.EMPTY:
-                    self.map[x][y-1] = self.map[x][y]
-                    self.map[x+1][y-1] = self.map[x+1][y]
-                    self.map[x][y] = self.map[x+1][y] = self.EMPTY
+                    if not dry_run:
+                        self.map[x][y-1] = self.map[x][y]
+                        self.map[x+1][y-1] = self.map[x+1][y]
+                        self.map[x][y] = self.map[x+1][y] = self.EMPTY
                     pills_fell = True
         return pills_fell
 
