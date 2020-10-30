@@ -155,7 +155,7 @@ class DrCYL(GridGame):
         self.current_pill = first + second
 
     def generate_grid(self, level: int):
-        self.viruses_left = 4 * (self.level + 1)
+        self.viruses_left = 4 * (min(level, 23) + 1)
         viruses_to_generate = self.viruses_left
 
         while viruses_to_generate > 0:
@@ -228,8 +228,7 @@ class DrCYL(GridGame):
 
     def do_turn(self):
         if self.viruses_left == 0: # generate new level
-            if self.level < 20:
-                self.level += 1
+            self.level += 1
             self.map = [[self.EMPTY] * self.MAP_HEIGHT for i in range(self.MAP_WIDTH)]
             self.generate_grid(self.level)
 
