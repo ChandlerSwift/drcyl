@@ -231,26 +231,11 @@ class DrCYL(GridGame):
             self.level += 1
             self.map = [[self.EMPTY] * self.MAP_HEIGHT for i in range(self.MAP_WIDTH)]
             self.generate_grid(self.level)
-
-        start_time = time.time()
-        pills_removed_this_turn = pills_fell_this_turn = False
-        if self.pills_changed_last_turn:
-            pills_removed_this_turn = self.remove_pills()
-            print("Pills were removed" if pills_removed_this_turn else "No pills removed")
-            if not pills_removed_this_turn:
-                pills_fell_this_turn = self.pills_fall()
-                print("Pills fell" if pills_fell_this_turn else "No pills fell")
-
-        self.pills_changed_last_turn = pills_removed_this_turn or pills_fell_this_turn
-
-        pills_will_be_removed_next_turn = pills_will_fall_next_turn = False
-        if self.pills_changed_last_turn: # well, this turn, really.
-            pills_will_be_removed_next_turn = self.remove_pills(dry_run=True)
-            if not pills_will_be_removed_next_turn:
-                pills_will_fall_next_turn = self.pills_fall(dry_run=True)
-        self.can_move = not pills_will_be_removed_next_turn and not pills_will_fall_next_turn and self.viruses_left > 0
-
-        if not self.current_pill: # we need a new pill
+        elif self.pills_fall(dry_run=True): # TODO: optimize: only if pills changed last turn
+            self.pills_fall()
+        elif self.remove_pills(dry_run=True): # TODO: optimize: only if pills changed last turn
+            self.remove_pills()
+        elif not self.current_pill: # need a new pill
             if self.map[3][15] == self.EMPTY and self.map[4][15] == self.EMPTY:
                 self.current_pill = self.capsule_queue.popleft()
                 self.capsule_queue.append(self.current_pill)
@@ -260,12 +245,12 @@ class DrCYL(GridGame):
             else:
                 self.running = False
                 return
-        if not self.pills_changed_last_turn: # well, this turn, really
+        else:
             self.do_player_move(self.player.move)
 
+        self.can_move = not self.pills_fall(dry_run=True) and not self.remove_pills(dry_run=True) # TODO: optimize: only if pills changed last turn
+
         self.update_vars_for_player()
-        if PERF_DEBUG:
-            print(f"Elapsed time: {time.time()-start_time}")
 
     def remove_pills(self, dry_run=False) -> bool: # TODO: break pairs
         # TODO: this doesn't work if multiple rows are completed. For example,
