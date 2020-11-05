@@ -144,6 +144,8 @@ class DrCYL(GridGame):
         self.pills_changed_last_turn = False
         self.can_move = True
 
+        self.viruses_removed_since_last_action = 0
+
     def fix_pill(self):
         current_pill = self.current_pill
         if self.current_orientation == Orientation.VERTICAL:
@@ -236,6 +238,7 @@ class DrCYL(GridGame):
         elif self.remove_pills(dry_run=True): # TODO: optimize: only if pills changed last turn
             self.remove_pills()
         elif not self.current_pill: # need a new pill
+            self.viruses_removed_since_last_action = 0
             if self.map[3][15] == self.EMPTY and self.map[4][15] == self.EMPTY:
                 self.current_pill = self.capsule_queue.popleft()
                 self.capsule_queue.append(self.current_pill)
@@ -308,8 +311,13 @@ class DrCYL(GridGame):
                                 self.map[current_x][y - 1] = self.PILLS[self.color(self.map[current_x][y - 1])]["single"] # break pair
                             self.map[current_x][y] = self.EMPTY
                             current_x += 1
-        self.score += 100 * (2 ** viruses_removed - 1)
         self.viruses_left -= viruses_removed
+        for _ in range(viruses_removed):
+            # This is the score that would be used in medium speed in the original
+            # game. Low would base off an initial score of 100, and High would
+            # scale from 300.
+            self.score += 200 * 2 ** min(self.viruses_removed_since_last_action, 5)
+            self.viruses_removed_since_last_action += 1
         return removed_pills
 
     def pills_fall(self, dry_run=False) -> bool:
