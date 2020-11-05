@@ -71,6 +71,10 @@ class DrCYL(GridGame):
     YELLOW_PILL_FACING_DOWN  = '\x18'
     BLUE_PILL_FACING_DOWN    = '\x19'
 
+    RED_PLACEHOLDER = '\xF0'
+    YELLOW_PLACEHOLDER = '\xF1'
+    BLUE_PLACEHOLDER = '\xF2'
+
     # TODO: this is the dumbest possible way to do this, but I can't think
     # of a better way at the moment, and this seems to work.
     PILLS = {
@@ -79,30 +83,39 @@ class DrCYL(GridGame):
             "up": BLUE_PILL_FACING_UP,
             "down": BLUE_PILL_FACING_DOWN,
             "left": BLUE_PILL_FACING_LEFT,
-            "right": BLUE_PILL_FACING_RIGHT
+            "right": BLUE_PILL_FACING_RIGHT,
+            "placeholder": BLUE_PLACEHOLDER,
         },
         "YELLOW": {
             "single": YELLOW_PILL,
             "up": YELLOW_PILL_FACING_UP,
             "down": YELLOW_PILL_FACING_DOWN,
             "left": YELLOW_PILL_FACING_LEFT,
-            "right": YELLOW_PILL_FACING_RIGHT
+            "right": YELLOW_PILL_FACING_RIGHT,
+            "placeholder": YELLOW_PLACEHOLDER,
         },
         "RED": {
             "single": RED_PILL,
             "up": RED_PILL_FACING_UP,
             "down": RED_PILL_FACING_DOWN,
             "left": RED_PILL_FACING_LEFT,
-            "right": RED_PILL_FACING_RIGHT
+            "right": RED_PILL_FACING_RIGHT,
+            "placeholder": RED_PLACEHOLDER,
         }
     }
 
+    PLACEHOLDERS = [
+        RED_PLACEHOLDER,
+        YELLOW_PLACEHOLDER,
+        BLUE_PLACEHOLDER,
+    ]
+
     def color(self, s: str):
-        if s in [self.RED_VIRUS, self.RED_PILL, self.RED_PILL_FACING_UP, self.RED_PILL_FACING_DOWN, self.RED_PILL_FACING_LEFT, self.RED_PILL_FACING_RIGHT]:
+        if s in [self.RED_VIRUS, self.RED_PILL, self.RED_PILL_FACING_UP, self.RED_PILL_FACING_DOWN, self.RED_PILL_FACING_LEFT, self.RED_PILL_FACING_RIGHT, self.RED_PLACEHOLDER]:
             return "RED"
-        if s in [self.YELLOW_VIRUS, self.YELLOW_PILL, self.YELLOW_PILL_FACING_UP, self.YELLOW_PILL_FACING_DOWN, self.YELLOW_PILL_FACING_LEFT, self.YELLOW_PILL_FACING_RIGHT]:
+        if s in [self.YELLOW_VIRUS, self.YELLOW_PILL, self.YELLOW_PILL_FACING_UP, self.YELLOW_PILL_FACING_DOWN, self.YELLOW_PILL_FACING_LEFT, self.YELLOW_PILL_FACING_RIGHT, self.YELLOW_PLACEHOLDER]:
             return "YELLOW"
-        if s in [self.BLUE_VIRUS, self.BLUE_PILL, self.BLUE_PILL_FACING_UP, self.BLUE_PILL_FACING_DOWN, self.BLUE_PILL_FACING_LEFT, self.BLUE_PILL_FACING_RIGHT]:
+        if s in [self.BLUE_VIRUS, self.BLUE_PILL, self.BLUE_PILL_FACING_UP, self.BLUE_PILL_FACING_DOWN, self.BLUE_PILL_FACING_LEFT, self.BLUE_PILL_FACING_RIGHT, self.BLUE_PLACEHOLDER]:
             return "BLUE"
 
     def __init__(self, random):
@@ -256,13 +269,34 @@ class DrCYL(GridGame):
         self.update_vars_for_player()
 
     def remove_pills(self, dry_run=False) -> bool: # TODO: break pairs
-        # TODO: this doesn't work if multiple rows are completed. For example,
-        # in the following scenario, if an O is added on the blank, only the
-        # vertical column will be cleared.
+        # In order to enable multiple rows facing different directions, we use
+        # a two-pass method. The first pass removes n-in-a-row sequences and
+        # replaces them with placeholders that retain the current color, which
+        # allows the pills to get caught up in a second sequence later in the
+        # first sweep. The second pass removes those placeholders.
+        #
+        # As an example, consider the following grid. If an O is added in the
+        # top left corner, it will complete both the leftmost column and the
+        # top row.
         # _ O O O
         # O X X X
         # O X X X
         # O X X X
+        # Naïvely, if we remove the column first:
+        #   O O O
+        #   X X X
+        #   X X X
+        #   X X X
+        # we lose the four-in-a-row that we need to remove the top row. However,
+        # if in the first pass we retain color using a placeholder (say, a
+        # lowercase value), we can still consider it in other sequences.
+        #
+        # The final pass simply removes all of the placeholders.
+        # O O O O    o O O O    o o o o    _ _ _ _
+        # O X X X    o X X X    o X X X    _ X X X
+        # O X X X => o X X X => o X X X => _ X X X
+        # O X X X    o X X X    o X X X    _ X X X
+
         facing_up = [self.RED_PILL_FACING_UP, self.YELLOW_PILL_FACING_UP, self.BLUE_PILL_FACING_UP]
         facing_right = [self.RED_PILL_FACING_RIGHT, self.YELLOW_PILL_FACING_RIGHT, self.BLUE_PILL_FACING_RIGHT]
         facing_down = [self.RED_PILL_FACING_DOWN, self.YELLOW_PILL_FACING_DOWN, self.BLUE_PILL_FACING_DOWN]
@@ -290,7 +324,7 @@ class DrCYL(GridGame):
                                 self.map[x][current_y + 1] = self.PILLS[self.color(self.map[x][current_y + 1])]["single"] # break pair
                             elif self.map[x][current_y] in facing_down: # attached to below
                                 self.map[x][current_y - 1] = self.PILLS[self.color(self.map[x][current_y - 1])]["single"] # break pair
-                            self.map[x][current_y] = self.EMPTY
+                            self.map[x][current_y] = self.PILLS[self.color(self.map[x][current_y])]["placeholder"]
                             current_y += 1
                 if x < 5 and self.color(self.map[x][y]) == self.color(self.map[x+1][y]) == self.color(self.map[x+2][y]) == self.color(self.map[x+3][y]) != None:
                     # rows
@@ -309,8 +343,15 @@ class DrCYL(GridGame):
                                 self.map[current_x][y + 1] = self.PILLS[self.color(self.map[current_x][y + 1])]["single"] # break pair
                             elif self.map[current_x][y] in facing_down: # attached to below
                                 self.map[current_x][y - 1] = self.PILLS[self.color(self.map[current_x][y - 1])]["single"] # break pair
-                            self.map[current_x][y] = self.EMPTY
+                            self.map[current_x][y] = self.PILLS[self.color(self.map[current_x][y])]["placeholder"]
                             current_x += 1
+
+        # Clear placeholders
+        for x in range(self.MAP_WIDTH):
+            for y in range(self.MAP_HEIGHT):
+                if self.map[x][y] in self.PLACEHOLDERS:
+                    self.map[x][y] = self.EMPTY
+
         self.viruses_left -= viruses_removed
         for _ in range(viruses_removed):
             # This is the score that would be used in medium speed in the original
