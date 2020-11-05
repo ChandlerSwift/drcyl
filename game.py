@@ -506,6 +506,8 @@ class DrCYL(GridGame):
 
     def draw_screen(self, frame_buffer):
 
+        next_pill = self.PILLS[self.color(self.capsule_queue[0][0])]["right"] +  self.PILLS[self.color(self.capsule_queue[0][1])]["left"]
+
         grid = f"""                                
                                 
      \xD5\xCB\xCD\xCD\xCB\xB8                     
@@ -516,7 +518,7 @@ class DrCYL(GridGame):
    \xBA        \xBA      DR CYL!      
    \xBA        \xBA                   
    \xBA        \xBA                   
-   \xBA        \xBA   next pill: {self.capsule_queue[0]}   
+   \xBA        \xBA   next pill: {next_pill}   
    \xBA        \xBA                   
    \xBA        \xBA   score: {str(self.score).zfill(6)}   
    \xBA        \xBA                   
