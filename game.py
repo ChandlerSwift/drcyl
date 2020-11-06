@@ -10,10 +10,6 @@ import time
 
 PERF_DEBUG = False
 
-class Orientation(Enum):
-    VERTICAL = 1
-    HORIZONTAL = 2
-
 class DrCYLPlayer(DefaultGridPlayer):
     def __init__(self, prog, bot_consts, sensors):
         super(DrCYLPlayer, self).__init__(prog, bot_consts)
@@ -118,6 +114,9 @@ class DrCYL(GridGame):
         if s in [self.BLUE_VIRUS, self.BLUE_PILL, self.BLUE_PILL_FACING_UP, self.BLUE_PILL_FACING_DOWN, self.BLUE_PILL_FACING_LEFT, self.BLUE_PILL_FACING_RIGHT, self.BLUE_PLACEHOLDER]:
             return "BLUE"
 
+    VERTICAL = 0
+    HORIZONTAL = 1
+
     def __init__(self, random):
         self.random = random
         self.running = True
@@ -151,7 +150,7 @@ class DrCYL(GridGame):
         # That is, if the domino is vertical, it's the lower of two positions
         # occupied; if it is horizontal, it's the leftmost of the two positions.
         self.current_position = [3,15]
-        self.current_orientation = Orientation.HORIZONTAL
+        self.current_orientation = self.HORIZONTAL
         self.fix_pill()
 
         self.pills_changed_last_turn = False
@@ -161,7 +160,7 @@ class DrCYL(GridGame):
 
     def fix_pill(self):
         current_pill = self.current_pill
-        if self.current_orientation == Orientation.VERTICAL:
+        if self.current_orientation == self.VERTICAL:
             first = self.PILLS[self.color(current_pill[0])]["up"]
             second = self.PILLS[self.color(current_pill[1])]["down"]
         else:
@@ -256,7 +255,7 @@ class DrCYL(GridGame):
                 self.current_pill = self.capsule_queue.popleft()
                 self.capsule_queue.append(self.current_pill)
                 self.current_position = [3,15]
-                self.current_orientation = Orientation.HORIZONTAL
+                self.current_orientation = self.HORIZONTAL
                 self.fix_pill()
             else:
                 self.running = False
@@ -391,7 +390,7 @@ class DrCYL(GridGame):
         pill_fixed_in_place = False
         if key == "s": # down
             fix_pill_in_place = False
-            if self.current_orientation == Orientation.VERTICAL:
+            if self.current_orientation == self.VERTICAL:
                 if self.current_position[1] > 0 and self.map[self.current_position[0]][self.current_position[1] - 1] == self.EMPTY: # Free space to move down
                     self.current_position[1] -= 1
                 else:
@@ -411,7 +410,7 @@ class DrCYL(GridGame):
                     self.map[self.current_position[0] + 1][self.current_position[1]] = self.current_pill [1]
                     pill_fixed_in_place = True
         elif key == "d": # right
-            if self.current_orientation == Orientation.HORIZONTAL:
+            if self.current_orientation == self.HORIZONTAL:
                 if self.current_position[0] < 6 and self.map[self.current_position[0] + 2][self.current_position[1]] == self.EMPTY: # Free space to move right
                     self.current_position[0] += 1
             else: # vertical
@@ -420,7 +419,7 @@ class DrCYL(GridGame):
                         self.map[self.current_position[0] + 1][self.current_position[1]] == self.EMPTY): # Free space to move right
                     self.current_position[0] += 1
         elif key == "a": # left
-            if self.current_orientation == Orientation.HORIZONTAL:
+            if self.current_orientation == self.HORIZONTAL:
                 if self.current_position[0] > 0 and self.map[self.current_position[0] - 1][self.current_position[1]] == self.EMPTY: # Free space to move left
                     self.current_position[0] -= 1
             else: # vertical
@@ -440,31 +439,31 @@ class DrCYL(GridGame):
                 current_y = self.current_position[1]
         # Rotations: taken from https://harddrop.com/wiki/Dr._Mario
         elif key == "q": # rotate_ccw
-            if self.current_orientation == Orientation.HORIZONTAL:
+            if self.current_orientation == self.HORIZONTAL:
                 # if we're on the top, we can always rotate counterclockwise; the rightmost simply flips above the leftmost.
                 if self.current_position[1] == 15 or self.map[self.current_position[0]][self.current_position[1] + 1] == self.EMPTY:
-                    self.current_orientation = Orientation.VERTICAL
+                    self.current_orientation = self.VERTICAL
             else: # vertical
                 if self.current_position[0] < 7 and self.map[self.current_position[0] + 1][self.current_position[1]] == self.EMPTY:
-                    self.current_orientation = Orientation.HORIZONTAL
+                    self.current_orientation = self.HORIZONTAL
                     self.current_pill = self.current_pill[1] + self.current_pill[0]
                 elif self.current_position[0] > 0 and self.map[self.current_position[0] - 1][self.current_position[1]] == self.EMPTY: # can kick left
-                    self.current_orientation = Orientation.HORIZONTAL
+                    self.current_orientation = self.HORIZONTAL
                     self.current_pill = self.current_pill[1] + self.current_pill[0]
                     self.current_position[0] -= 1
         elif key == "e": # rotate_cw
-            if self.current_orientation == Orientation.HORIZONTAL:
+            if self.current_orientation == self.HORIZONTAL:
                 # if we're on the top, we can always rotate counterclockwise; the rightmost simply flips above the leftmost.
                 if self.current_position[1] == 15 or self.map[self.current_position[0]][self.current_position[1] + 1] == self.EMPTY:
                     self.current_pill = self.current_pill[1] + self.current_pill[0]
-                    self.current_orientation = Orientation.VERTICAL
+                    self.current_orientation = self.VERTICAL
             else: # vertical
                 if self.current_position[0] < 7 and self.map[self.current_position[0] + 1][self.current_position[1]] == self.EMPTY:
-                    self.current_orientation = Orientation.HORIZONTAL
+                    self.current_orientation = self.HORIZONTAL
                 elif self.current_position[0] > 0 and self.map[self.current_position[0] - 1][self.current_position[1]] == self.EMPTY: # can kick left
-                    self.current_orientation = Orientation.HORIZONTAL
+                    self.current_orientation = self.HORIZONTAL
                     self.current_position[0] -= 1
-                    self.current_orientation = Orientation.HORIZONTAL
+                    self.current_orientation = self.HORIZONTAL
         else:
             pass
             # raise KeyError
@@ -504,8 +503,8 @@ class DrCYL(GridGame):
             "pill_value": self.current_pill,
             "pill_position": self.current_position,
             "pill_orientation": self.current_orientation,
-            "VERTICAL": Orientation.VERTICAL,
-            "HORIZONTAL": Orientation.HORIZONTAL,
+            "vertical": self.VERTICAL,
+            "horizontal": self.HORIZONTAL,
             "next_pill": self.capsule_queue[0],
             "can_move": self.can_move
         }
@@ -587,9 +586,9 @@ class DrCYL(GridGame):
         # Draw currently falling pill
         if self.current_pill:
             frame_buffer.set(self.current_position[0] + 4, self.MAP_HEIGHT - self.current_position[1] + 4, self.current_pill[0])
-            if self.current_orientation == Orientation.HORIZONTAL:
+            if self.current_orientation == self.HORIZONTAL:
                 frame_buffer.set(self.current_position[0] + 1 + 4, self.MAP_HEIGHT - self.current_position[1] + 4, self.current_pill[1])
-            else: # self.current_orientation = Orientation.VERTICAL
+            else: # self.current_orientation = self.VERTICAL
                 frame_buffer.set(self.current_position[0] + 4, self.MAP_HEIGHT - (self.current_position[1] + 1) + 4, self.current_pill[1])
 
         if not self.running:
