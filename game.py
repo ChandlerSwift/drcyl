@@ -241,6 +241,10 @@ class DrCYL(GridGame):
         pass
 
     def do_turn(self):
+        self.turns += 1
+        if self.turns > self.MAX_TURNS:
+            self.running = False
+            return
         if self.viruses_left == 0: # generate new level
             self.level += 1
             self.map = [[self.EMPTY] * self.MAP_HEIGHT for i in range(self.MAP_WIDTH)]
